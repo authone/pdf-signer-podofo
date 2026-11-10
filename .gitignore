@@ -1,0 +1,14 @@
+build/
+third_party/
+out/
+
+# Throwaway signing material produced by scripts/make-test-cert.sh
+*.pem
+*.der
+*.p12
+*.pfx
+
+# Editor swap files
+*.swp
+*.swo
+*~
