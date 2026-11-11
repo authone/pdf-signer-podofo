@@ -49,8 +49,11 @@ find_package(OpenSSL REQUIRED)
 # that would otherwise have to be written by hand against OpenSSL BIOs.
 find_package(CURL REQUIRED)
 
-add_executable(podofo-pdf-sign
-    src/main.cpp
+# The signing engine, built as a library so that every front end -- the CLI
+# here, the WinUI app under winui/ -- drives the same code. SigningFacade is
+# its only entry point for a user interface; nothing above it needs PoDoFo,
+# OpenSSL or libcurl headers.
+add_library(pdfsign_core STATIC
     src/OpenSslSupport.cpp
     src/SigningIdentity.cpp
     src/DocumentSource.cpp
@@ -63,19 +66,41 @@ add_executable(podofo-pdf-sign
     src/HttpClient.cpp
     src/HttpTimestampService.cpp
     src/HttpOcspResponder.cpp
-    src/SampleDoc.cpp)
+    src/SampleDoc.cpp
+    src/SigningFacade.cpp)
 
-target_link_libraries(podofo-pdf-sign
-    PRIVATE
+target_include_directories(pdfsign_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+# PUBLIC because the engine's own headers expose PoDoFo types; a front end
+# that only uses SigningFacade.h never sees them.
+target_link_libraries(pdfsign_core
+    PUBLIC
         podofo::podofo
         OpenSSL::Crypto
         CURL::libcurl)
 
-if(MSVC)
-    target_compile_options(podofo-pdf-sign PRIVATE /W4)
-else()
-    target_compile_options(podofo-pdf-sign PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+set_property(TARGET pdfsign_core PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+# The WinUI app's view model is deliberately plain C++ with no Windows or
+# WinRT dependency, so it is built here as well. That keeps the separation
+# honest: if presentation logic drifts into something only Windows can
+# compile, this build fails immediately rather than at the next Visual Studio
+# run. The XAML and its code-behind are Windows-only and live under winui/.
+add_library(pdfsign_viewmodel STATIC winui/ViewModel/MainViewModel.cpp)
+target_include_directories(pdfsign_viewmodel PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/winui/ViewModel")
+target_link_libraries(pdfsign_viewmodel PUBLIC pdfsign_core)
+
+add_executable(podofo-pdf-sign src/main.cpp)
+
+target_link_libraries(podofo-pdf-sign PRIVATE pdfsign_core)
+
+foreach(target pdfsign_core pdfsign_viewmodel podofo-pdf-sign)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W4)
+    else()
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+endforeach()
 
 # Let the binary find a locally built PoDoFo without LD_LIBRARY_PATH.
 set_target_properties(podofo-pdf-sign PROPERTIES

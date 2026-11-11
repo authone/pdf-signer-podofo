@@ -67,6 +67,25 @@ build/podofo-pdf-sign info --pkcs12 test-cert.p12 --password test
 
 `--help` lists every option.
 
+## Front ends
+
+The signing engine is a library (`pdfsign_core`) with a single entry point for
+user interfaces, `SigningFacade`. Two front ends drive it:
+
+- **`podofo-pdf-sign`** — the command line, documented below.
+- **`winui/`** — a Windows 10/11 desktop window in WinUI 3, laid out after the
+  clickSIGN PDF dialog. See [winui/README.md](winui/README.md). It was written
+  but, being developed on Linux, has never been compiled by MSVC.
+
+`SigningFacade.h` includes only `<string>`, `<vector>` and `<functional>`: no
+PoDoFo, OpenSSL or libcurl type crosses it, and neither does an exception.
+Failures come back as data, because a UI has no good way to catch an exception
+thrown on a worker thread.
+
+The WinUI view model is plain C++ with no Windows dependency, and is built on
+Linux as `pdfsign_viewmodel` precisely so that presentation logic cannot
+quietly become Windows-only.
+
 ## Architecture
 
 Three things vary independently when you sign a PDF: where the document comes
@@ -510,7 +529,10 @@ src/HttpTimestampService.{h,cpp} RFC 3161 client over HTTP/HTTPS, mutual TLS
 src/HttpOcspResponder.{h,cpp}    RFC 6960 OCSP client, AIA discovery
 src/OpenSslSupport.{h,cpp}       OpenSSL RAII handles and error reporting
 src/SampleDoc.{h,cpp}            generates a page to sign when no input is given
+src/SigningFacade.{h,cpp}        the UI-facing boundary: plain types, no throw
 src/main.cpp                     command line and composition root
+winui/ViewModel/                 portable presentation logic (built on Linux too)
+winui/ClickSignPdf/              WinUI 3 XAML window and its adapter
 scripts/install-deps.sh  system build dependencies (needs root)
 scripts/build-podofo.sh  builds PoDoFo 1.1.2 into third_party/prefix
 scripts/make-test-cert.sh    throwaway self-signed signing certificate

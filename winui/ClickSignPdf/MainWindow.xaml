@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: MIT -->
+<Window
+    x:Class="ClickSignPdf.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- banner -->
+            <RowDefinition Height="Auto" />
+            <!-- input file -->
+            <RowDefinition Height="Auto" />
+            <!-- output file -->
+            <RowDefinition Height="Auto" />
+            <!-- certificate -->
+            <RowDefinition Height="Auto" />
+            <!-- timestamp status -->
+            <RowDefinition Height="*" />
+            <!-- progress / result -->
+            <RowDefinition Height="Auto" />
+            <!-- command bar -->
+        </Grid.RowDefinitions>
+
+        <!-- Banner. Drop a real logo into Assets/banner.png and swap the Border
+             for an Image; it is drawn here so the app builds with no binary asset. -->
+        <Border Grid.Row="0" Height="92" Margin="12,12,12,8"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="4">
+            <Grid Padding="16,0">
+                <TextBlock Text="pdfSIGN" FontSize="26" FontStyle="Italic"
+                           FontWeight="SemiBold" VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="certSIGN" FontSize="22" FontWeight="Bold"
+                           VerticalAlignment="Center" HorizontalAlignment="Right"
+                           Foreground="#D32028" />
+                <TextBlock Text="PDF" FontSize="13" FontWeight="Bold"
+                           VerticalAlignment="Top" HorizontalAlignment="Left"
+                           Margin="0,10,0,0" Foreground="#D32028" />
+            </Grid>
+        </Border>
+
+        <!-- Input file -->
+        <Grid Grid.Row="1" Margin="12,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Fișier intrare:" VerticalAlignment="Center" />
+            <TextBox   Grid.Column="1" x:Name="InputPathBox"
+                       TextChanged="OnInputPathChanged"
+                       PlaceholderText="Selectați documentul PDF de semnat" />
+            <Button    Grid.Column="2" x:Name="BrowseInputButton" Content="Selectează"
+                       Margin="8,0,0,0" MinWidth="96" Click="OnBrowseInput" />
+            <Button    Grid.Column="3" x:Name="PreviewButton" Margin="8,0,0,0"
+                       ToolTipService.ToolTip="Deschide documentul"
+                       Click="OnPreviewInput">
+                <FontIcon Glyph="&#xE8A5;" FontSize="16" />
+            </Button>
+        </Grid>
+
+        <!-- Output file -->
+        <Grid Grid.Row="2" Margin="12,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Fișier ieșire:" VerticalAlignment="Center" />
+            <TextBox   Grid.Column="1" x:Name="OutputPathBox"
+                       TextChanged="OnOutputPathChanged"
+                       PlaceholderText="Se completează automat" />
+            <Button    Grid.Column="2" x:Name="BrowseOutputButton" Content="Selectează"
+                       Margin="8,0,0,0" MinWidth="96" Click="OnBrowseOutput" />
+            <Button    Grid.Column="3" x:Name="SettingsButton" Margin="8,0,0,0"
+                       ToolTipService.ToolTip="Setări semnătură, marcă temporală și OCSP"
+                       Click="OnOpenSettings">
+                <FontIcon Glyph="&#xE713;" FontSize="16" />
+            </Button>
+        </Grid>
+
+        <!-- Certificate -->
+        <Grid Grid.Row="3" Margin="12,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Certificat:" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" x:Name="CertificateText" Text="Fără certificat."
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       FontWeight="SemiBold" />
+            <Button    Grid.Column="2" x:Name="BrowseCertificateButton" Content="Selectează"
+                       Margin="8,0,0,0" MinWidth="96" Click="OnBrowseCertificate" />
+        </Grid>
+
+        <!-- Timestamp status, mirroring the original's single status line -->
+        <TextBlock Grid.Row="4" x:Name="TimestampText" Margin="122,4,12,6"
+                   Text="Fără marcă temporală."
+                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+        <!-- Progress and outcome -->
+        <StackPanel Grid.Row="5" Margin="12,8" VerticalAlignment="Top" Spacing="6">
+            <ProgressBar x:Name="BusyBar" IsIndeterminate="True" Visibility="Collapsed" />
+            <TextBlock x:Name="StatusText" TextWrapping="Wrap"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <InfoBar x:Name="ResultBar" IsOpen="False" IsClosable="True" />
+        </StackPanel>
+
+        <!-- Commands -->
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right"
+                    Margin="12,8,12,14" Spacing="8">
+            <Button x:Name="SignButton" Content="Semnează" MinWidth="110"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    IsEnabled="False" Click="OnSign" />
+            <Button x:Name="CloseButton" Content="Închide" MinWidth="110" Click="OnClose" />
+        </StackPanel>
+    </Grid>
+</Window>

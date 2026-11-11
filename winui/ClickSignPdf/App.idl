@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: MIT
+namespace ClickSignPdf
+{
+    runtimeclass App : Microsoft.UI.Xaml.Application
+    {
+        App();
+    }
+}
